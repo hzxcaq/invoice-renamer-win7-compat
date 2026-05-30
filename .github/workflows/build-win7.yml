@@ -27,7 +27,7 @@ jobs:
 
       - name: Build Windows 7 executable
         run: |
-          pyinstaller --onefile --windowed --name="发票批量重命名工具_Win7" src/invoice_renamer/main.py
+          pyinstaller --onefile --windowed --name="发票批量重命名工具_Win7" --hidden-import=invoice_renamer.gui --hidden-import=invoice_renamer.gui.main_window --hidden-import=invoice_renamer.gui.file_selector --hidden-import=invoice_renamer.gui.excel_viewer --hidden-import=invoice_renamer.gui.format_builder --hidden-import=invoice_renamer.gui.preview_table --hidden-import=invoice_renamer.core --hidden-import=invoice_renamer.core.excel_reader --hidden-import=invoice_renamer.core.file_matcher --hidden-import=invoice_renamer.core.renamer src/invoice_renamer/main.py
 
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
