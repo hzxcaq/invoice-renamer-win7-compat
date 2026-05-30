@@ -1,0 +1,54 @@
+name: Build Windows 7 Compatible Version
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-win7:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.7'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r src/invoice_renamer/requirements.txt
+          pip install pyinstaller
+
+      - name: Build Windows 7 executable
+        run: |
+          pyinstaller --onefile --windowed --name="发票批量重命名工具_Win7" src/invoice_renamer/main.py
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/发票批量重命名工具_Win7.exe
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            ## Windows 7 兼容版本
+            
+            此版本使用 Python 3.7 打包，专门兼容 Windows 7 SP1 及更高版本。
+            
+            ### 系统要求
+            - Windows 7 SP1 或更高版本
+            - 无需安装额外补丁
+            
+            ### 使用说明
+            1. 下载 `发票批量重命名工具_Win7.exe`
+            2. 双击运行即可
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
