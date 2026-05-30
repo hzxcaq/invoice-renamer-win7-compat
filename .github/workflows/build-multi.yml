@@ -29,13 +29,13 @@ jobs:
 
       - name: Build Windows 7 executable
         run: |
-          pyinstaller --onefile --windowed --name="发票批量重命名工具_Win7" --hidden-import=invoice_renamer.gui --hidden-import=invoice_renamer.gui.main_window --hidden-import=invoice_renamer.gui.file_selector --hidden-import=invoice_renamer.gui.excel_viewer --hidden-import=invoice_renamer.gui.format_builder --hidden-import=invoice_renamer.gui.preview_table --hidden-import=invoice_renamer.core --hidden-import=invoice_renamer.core.excel_reader --hidden-import=invoice_renamer.core.file_matcher --hidden-import=invoice_renamer.core.renamer --hidden-import=invoice_renamer.core.utils src/invoice_renamer/main.py
+          pyinstaller --onefile --windowed --name="InvoiceRenamer_Win7" --hidden-import=invoice_renamer.gui --hidden-import=invoice_renamer.gui.main_window --hidden-import=invoice_renamer.gui.file_selector --hidden-import=invoice_renamer.gui.excel_viewer --hidden-import=invoice_renamer.gui.format_builder --hidden-import=invoice_renamer.gui.preview_table --hidden-import=invoice_renamer.core --hidden-import=invoice_renamer.core.excel_reader --hidden-import=invoice_renamer.core.file_matcher --hidden-import=invoice_renamer.core.renamer --hidden-import=invoice_renamer.core.utils src/invoice_renamer/main.py
 
       - name: Upload Windows 7 artifact
         uses: actions/upload-artifact@v3
         with:
           name: windows7-executable
-          path: dist/发票批量重命名工具_Win7.exe
+          path: dist/InvoiceRenamer_Win7.exe
 
   build-win10:
     runs-on: windows-latest
@@ -56,13 +56,13 @@ jobs:
 
       - name: Build Windows 10/11 executable
         run: |
-          pyinstaller --onefile --windowed --name="发票批量重命名工具_Win10" --hidden-import=invoice_renamer.gui --hidden-import=invoice_renamer.gui.main_window --hidden-import=invoice_renamer.gui.file_selector --hidden-import=invoice_renamer.gui.excel_viewer --hidden-import=invoice_renamer.gui.format_builder --hidden-import=invoice_renamer.gui.preview_table --hidden-import=invoice_renamer.core --hidden-import=invoice_renamer.core.excel_reader --hidden-import=invoice_renamer.core.file_matcher --hidden-import=invoice_renamer.core.renamer --hidden-import=invoice_renamer.core.utils src/invoice_renamer/main.py
+          pyinstaller --onefile --windowed --name="InvoiceRenamer_Win10" --hidden-import=invoice_renamer.gui --hidden-import=invoice_renamer.gui.main_window --hidden-import=invoice_renamer.gui.file_selector --hidden-import=invoice_renamer.gui.excel_viewer --hidden-import=invoice_renamer.gui.format_builder --hidden-import=invoice_renamer.gui.preview_table --hidden-import=invoice_renamer.core --hidden-import=invoice_renamer.core.excel_reader --hidden-import=invoice_renamer.core.file_matcher --hidden-import=invoice_renamer.core.renamer --hidden-import=invoice_renamer.core.utils src/invoice_renamer/main.py
 
       - name: Upload Windows 10/11 artifact
         uses: actions/upload-artifact@v3
         with:
           name: windows10-executable
-          path: dist/发票批量重命名工具_Win10.exe
+          path: dist/InvoiceRenamer_Win10.exe
 
   release:
     runs-on: ubuntu-latest
@@ -89,8 +89,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            dist/发票批量重命名工具_Win7.exe
-            dist/发票批量重命名工具_Win10.exe
+            dist/InvoiceRenamer_Win7.exe
+            dist/InvoiceRenamer_Win10.exe
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
           body: |
@@ -99,8 +99,8 @@ jobs:
             此版本包含两个可执行文件，分别兼容不同的Windows版本：
             
             ### 文件说明
-            - `发票批量重命名工具_Win7.exe`: 使用 Python 3.7 打包，兼容 Windows 7 SP1 及更高版本
-            - `发票批量重命名工具_Win10.exe`: 使用 Python 3.11 打包，推荐在 Windows 10/11 上使用
+            - `InvoiceRenamer_Win7.exe`: 使用 Python 3.7 打包，兼容 Windows 7 SP1 及更高版本
+            - `InvoiceRenamer_Win10.exe`: 使用 Python 3.11 打包，推荐在 Windows 10/11 上使用
             
             ### 系统要求
             - **Windows 7 版本**: Windows 7 SP1 或更高版本，无需额外补丁
