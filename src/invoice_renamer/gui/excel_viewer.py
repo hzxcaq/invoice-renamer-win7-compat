@@ -18,8 +18,8 @@ class ExcelViewer(ttk.Frame):
     
     def _create_widgets(self):
         """创建界面组件"""
-        # 创建表格，设置最大显示行数为15，防止无限扩展
-        self.tree = ttk.Treeview(self, show="headings", selectmode="browse", height=15)
+        # 创建表格，设置默认显示10行
+        self.tree = ttk.Treeview(self, show="headings", selectmode="browse", height=10)
         
         # 添加滚动条
         scrollbar_y = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.tree.yview)
@@ -27,10 +27,10 @@ class ExcelViewer(ttk.Frame):
         
         self.tree.configure(yscrollcommand=scrollbar_y.set, xscrollcommand=scrollbar_x.set)
         
-        # 布局 - 使用expand=True填充可用空间
-        self.tree.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        # 布局
         scrollbar_y.pack(side=tk.RIGHT, fill=tk.Y)
         scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X)
+        self.tree.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
         
         # 绑定事件
         self.tree.bind("<<TreeviewSelect>>", self._on_select)
