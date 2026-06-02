@@ -187,16 +187,28 @@ class MainWindow(tk.Tk):
         """设置Excel文件"""
         self.current_excel_file = excel_file
         
-        # 读取Excel数据
+        # 读取Excel数据（优先尝试多sheet合并）
         try:
-            self.excel_data = self.excel_reader.read_excel(excel_file)
-            self.excel_headers = self.excel_reader.get_headers(excel_file)
+            try:
+                merged_data, grouped_columns = self.excel_reader.read_excel_merged(excel_file)
+                self.excel_data = merged_data
+                self.excel_headers = list(merged_data[0].keys()) if merged_data else []
+                has_groups = len(grouped_columns) > 1
+            except Exception:
+                # 多sheet合并失败，退化为单sheet读取
+                self.excel_data = self.excel_reader.read_excel(excel_file)
+                self.excel_headers = self.excel_reader.get_headers(excel_file)
+                grouped_columns = {}
+                has_groups = False
             
             # 更新Excel预览
             self.excel_viewer.update_data(self.excel_headers, self.excel_data)
             
-            # 更新格式构建器
-            self.format_builder.update_columns(self.excel_headers)
+            # 更新格式构建器（根据是否有分组选择不同方法）
+            if has_groups:
+                self.format_builder.update_columns_grouped(self.excel_headers, grouped_columns)
+            else:
+                self.format_builder.update_columns(self.excel_headers)
             
             # 更新按钮状态
             self._update_button_states()

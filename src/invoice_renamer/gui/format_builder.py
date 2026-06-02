@@ -19,6 +19,10 @@ class FormatBuilder(ttk.Frame):
         # 存储列信息
         self.columns = []
         self.selected_columns = []
+        # 分组列信息（sheet名 -> 列名列表）
+        self.grouped_columns: Dict[str, List[str]] = {}
+        # 树状视图中被选中的列集合
+        self._tree_selected: set = set()
         
         # 窗口宽度缓存
         self._last_window_width = 0
@@ -45,20 +49,28 @@ class FormatBuilder(ttk.Frame):
         main_frame.columnconfigure(2, weight=2)  # 已选列区域，可缩放
         main_frame.rowconfigure(0, weight=0)
         
-        # 左侧：列选择区域
+        # 左侧：列选择区域（树状视图）
         left_frame = ttk.Frame(main_frame)
         left_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
         
-        ttk.Label(left_frame, text="可用列:").pack(anchor=tk.W)
+        ttk.Label(left_frame, text="可用列 (点击选择):").pack(anchor=tk.W)
         
-        # 列列表框
-        self.columns_listbox = tk.Listbox(left_frame, selectmode=tk.EXTENDED, height=6)
-        self.columns_listbox.pack(fill=tk.BOTH, expand=True)
+        # 树状视图容器
+        tree_container = ttk.Frame(left_frame)
+        tree_container.pack(fill=tk.BOTH, expand=True)
         
-        # 添加滚动条
-        columns_scrollbar = ttk.Scrollbar(left_frame, orient=tk.VERTICAL, command=self.columns_listbox.yview)
-        columns_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.columns_listbox.configure(yscrollcommand=columns_scrollbar.set)
+        # 树状视图 - 显示列名，按sheet分组
+        self.columns_tree = ttk.Treeview(tree_container, selectmode="none", height=8)
+        self.columns_tree.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
+        
+        # 滚动条
+        tree_scrollbar = ttk.Scrollbar(tree_container, orient=tk.VERTICAL, command=self.columns_tree.yview)
+        tree_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.columns_tree.configure(yscrollcommand=tree_scrollbar.set)
+        
+        # 配置树状视图样式
+        self.columns_tree.tag_configure("selected", foreground="#1a73e8", font=("", 9, "bold"))
+        self.columns_tree.tag_configure("unselected", foreground="#333333")
         
         # 中间：操作按钮区域
         middle_frame = ttk.Frame(main_frame)
@@ -129,28 +141,77 @@ class FormatBuilder(ttk.Frame):
         self.preview_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(5, 0))
         
         # 绑定事件
-        self.columns_listbox.bind("<<ListboxSelect>>", self._on_column_select)
+        self.columns_tree.bind("<ButtonRelease-1>", self._on_tree_click)
         self.selected_listbox.bind("<<ListboxSelect>>", self._on_selected_select)
         self.separator_combo.bind("<<ComboboxSelected>>", self._on_separator_change)
     
     def update_columns(self, columns: List[str]):
-        """更新可用列"""
+        """更新可用列（单 sheet 兼容模式，扁平展示）"""
         self.columns = columns
+        self.grouped_columns = {"": columns}
+        self._tree_selected.clear()
         
-        # 清空列表框
-        self.columns_listbox.delete(0, tk.END)
+        # 清空树状视图
+        for item in self.columns_tree.get_children():
+            self.columns_tree.delete(item)
         
-        # 添加列
-        for column in columns:
-            self.columns_listbox.insert(tk.END, column)
+        # 单 sheet 时直接平铺列名（无分组节点）
+        for col in columns:
+            self.columns_tree.insert("", tk.END, iid=f"col_{col}", text=col, tags=("unselected",))
+    
+    def update_columns_grouped(self, columns: List[str], grouped_columns: Dict[str, List[str]]):
+        """
+        更新可用列（多 sheet 分组模式，树状展示）
+        
+        Args:
+            columns: 全部列名列表
+            grouped_columns: 按 sheet 分组的列名字典，如 {"发票基础信息": ["序号", ...], ...}
+        """
+        self.columns = columns
+        self.grouped_columns = grouped_columns
+        self._tree_selected.clear()
+        
+        # 清空树状视图
+        for item in self.columns_tree.get_children():
+            self.columns_tree.delete(item)
+        
+        # 如果只有一个分组，平铺展示
+        if len(grouped_columns) <= 1:
+            for col in columns:
+                self.columns_tree.insert("", tk.END, iid=f"col_{col}", text=col, tags=("unselected",))
+            return
+        
+        # 多个分组：创建树状结构
+        first_group = True
+        for sheet_name, cols in grouped_columns.items():
+            # 插入分组节点（一级节点）
+            group_id = f"group_{sheet_name}"
+            self.columns_tree.insert(
+                "", tk.END, iid=group_id, text=f"  {sheet_name} ({len(cols)}列)",
+                open=first_group
+            )
+            first_group = False
+            
+            # 插入列节点（二级节点）
+            for col in cols:
+                col_id = f"col_{col}"
+                self.columns_tree.insert(
+                    group_id, tk.END, iid=col_id, text=f"  {col}",
+                    tags=("unselected",)
+                )
     
     def clear(self):
         """清空所有列"""
         self.columns = []
         self.selected_columns = []
+        self.grouped_columns = {}
+        self._tree_selected.clear()
         
-        # 清空列表框
-        self.columns_listbox.delete(0, tk.END)
+        # 清空树状视图
+        for item in self.columns_tree.get_children():
+            self.columns_tree.delete(item)
+        
+        # 清空已选列列表框
         self.selected_listbox.delete(0, tk.END)
         
         # 清空预览
@@ -160,17 +221,12 @@ class FormatBuilder(ttk.Frame):
         self.main_window.update_format_template("")
     
     def _add_columns(self):
-        """添加选中的列"""
-        # 获取选中的列
-        selection = self.columns_listbox.curselection()
-        
-        for index in selection:
-            column = self.columns_listbox.get(index)
-            
+        """添加树状视图中选中的列到已选列表"""
+        for col_name in list(self._tree_selected):
             # 避免重复添加
-            if column not in self.selected_columns:
-                self.selected_columns.append(column)
-                self.selected_listbox.insert(tk.END, column)
+            if col_name not in self.selected_columns:
+                self.selected_columns.append(col_name)
+                self.selected_listbox.insert(tk.END, col_name)
         
         # 更新格式预览
         self._update_preview()
@@ -265,10 +321,33 @@ class FormatBuilder(ttk.Frame):
         # 更新格式模板
         self._update_format_template()
     
-    def _on_column_select(self, event):
-        """列选择事件处理"""
-        # 这里可以添加选中列的处理逻辑
-        pass
+    def _on_tree_click(self, event):
+        """树状视图点击事件处理 - 切换列的选中状态"""
+        # 获取点击位置的 item
+        item_id = self.columns_tree.identify_row(event.y)
+        if not item_id:
+            return
+        
+        # 判断点击的是分组节点还是列节点
+        children = self.columns_tree.get_children()
+        is_group = item_id in children  # 一级节点是分组
+        
+        if is_group:
+            # 点击分组节点：展开/折叠
+            current_open = self.columns_tree.item(item_id, "open")
+            self.columns_tree.item(item_id, open=not current_open)
+        else:
+            # 点击列节点：切换选中状态
+            col_name = self.columns_tree.item(item_id, "text").strip()
+            
+            if col_name in self._tree_selected:
+                # 取消选中
+                self._tree_selected.discard(col_name)
+                self.columns_tree.item(item_id, tags=("unselected",))
+            else:
+                # 选中
+                self._tree_selected.add(col_name)
+                self.columns_tree.item(item_id, tags=("selected",))
     
     def _on_selected_select(self, event):
         """已选列选择事件处理"""
