@@ -41,27 +41,31 @@ class FormatBuilder(ttk.Frame):
         """创建界面组件"""
         # 创建主框架
         main_frame = ttk.Frame(self)
-        main_frame.pack(fill=tk.X)
+        main_frame.pack(fill=tk.BOTH, expand=True)
         
         # 使用Grid布局来精确控制三列的宽度
         main_frame.columnconfigure(0, weight=1)  # 可用列区域，可缩放
         main_frame.columnconfigure(1, weight=0)  # 中间按钮区域，固定宽度
         main_frame.columnconfigure(2, weight=2)  # 已选列区域，可缩放
-        main_frame.rowconfigure(0, weight=0)
+        main_frame.rowconfigure(0, weight=1)
         
         # 左侧：列选择区域（树状视图）
         left_frame = ttk.Frame(main_frame)
         left_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
         
-        ttk.Label(left_frame, text="可用列 (点击选择):").pack(anchor=tk.W)
+        ttk.Label(left_frame, text="可用列 (点击选择):", anchor=tk.W).pack(anchor=tk.W, pady=(0, 2), fill=tk.X)
+        
+        # 提示标签
+        hint_text = "提示：多个Sheet中重复的列\n仅在第一个Sheet显示"
+        ttk.Label(left_frame, text=hint_text, font=("", 8), foreground="#666666", justify=tk.LEFT).pack(anchor=tk.W, pady=(0, 5))
         
         # 树状视图容器
         tree_container = ttk.Frame(left_frame)
         tree_container.pack(fill=tk.BOTH, expand=True)
         
         # 树状视图 - 显示列名，按sheet分组
-        self.columns_tree = ttk.Treeview(tree_container, selectmode="none", height=8)
-        self.columns_tree.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
+        self.columns_tree = ttk.Treeview(tree_container, selectmode="none", height=0)
+        self.columns_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
         # 滚动条
         tree_scrollbar = ttk.Scrollbar(tree_container, orient=tk.VERTICAL, command=self.columns_tree.yview)
@@ -89,10 +93,10 @@ class FormatBuilder(ttk.Frame):
         right_frame = ttk.Frame(main_frame)
         right_frame.grid(row=0, column=2, sticky="nsew")
         
-        ttk.Label(right_frame, text="已选列 (按顺序):").pack(anchor=tk.W)
+        ttk.Label(right_frame, text="已选列 (按顺序):", anchor=tk.W).pack(anchor=tk.W, fill=tk.X)
         
         # 已选列列表框
-        self.selected_listbox = tk.Listbox(right_frame, selectmode=tk.EXTENDED, height=6)
+        self.selected_listbox = tk.Listbox(right_frame, selectmode=tk.EXTENDED, height=0)
         self.selected_listbox.pack(fill=tk.BOTH, expand=True)
         
         # 添加滚动条
@@ -328,14 +332,22 @@ class FormatBuilder(ttk.Frame):
         if not item_id:
             return
         
+        # 检查点击的是展开/折叠箭头还是文本区域
+        element = self.columns_tree.identify_element(event.x, event.y)
+        
         # 判断点击的是分组节点还是列节点
         children = self.columns_tree.get_children()
         is_group = item_id in children  # 一级节点是分组
         
         if is_group:
-            # 点击分组节点：展开/折叠
-            current_open = self.columns_tree.item(item_id, "open")
-            self.columns_tree.item(item_id, open=not current_open)
+            # 点击分组节点：如果点击的是文本区域，则手动切换展开/折叠
+            if element == "treearea":
+                # 点击的是展开/折叠箭头区域，让默认行为处理
+                return
+            else:
+                # 点击的是文本区域，手动切换展开/折叠
+                current_open = self.columns_tree.item(item_id, "open")
+                self.columns_tree.item(item_id, open=not current_open)
         else:
             # 点击列节点：切换选中状态
             col_name = self.columns_tree.item(item_id, "text").strip()
