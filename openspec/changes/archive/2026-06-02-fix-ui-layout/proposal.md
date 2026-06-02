@@ -51,20 +51,20 @@
 
 ### 代码影响
 - **修改文件**：
- - `src/invoice_renamer/gui/main_window.py`：添加垂直 PanedWindow，调整布局结构
- - `src/invoice_renamer/gui/format_builder.py`：移除固定高度设置，调整组件打包方式
- - `src/invoice_renamer/gui/excel_viewer.py`：移除固定高度设置
+  - `src/invoice_renamer/gui/main_window.py`：添加垂直 PanedWindow，调整布局结构
+  - `src/invoice_renamer/gui/format_builder.py`：移除固定高度设置，调整组件打包方式
+  - `src/invoice_renamer/gui/excel_viewer.py`：移除固定高度设置
 
 ### 用户体验影响
 - **正面影响**：
- - 消除所有空白行，界面更加紧凑
- - 用户可以自由调整数据预览和格式定义区域的大小
- - 保持现有的左右调整功能，同时增加上下调整功能
- - 界面更加灵活，适应不同屏幕尺寸和用户需求
+  - 消除所有空白行，界面更加紧凑
+  - 用户可以自由调整数据预览和格式定义区域的大小
+  - 保持现有的左右调整功能，同时增加上下调整功能
+  - 界面更加灵活，适应不同屏幕尺寸和用户需求
 
 - **潜在风险**：
- - 用户需要适应新的调整方式（垂直拖动）
- - 初始布局可能需要用户手动调整到舒适的比例
+  - 用户需要适应新的调整方式（垂直拖动）
+  - 初始布局可能需要用户手动调整到舒适的比例
 
 ### 兼容性
 - 完全向后兼容，不影响现有功能

@@ -53,7 +53,7 @@ class FormatBuilder(ttk.Frame):
         left_frame = ttk.Frame(main_frame)
         left_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
         
-        ttk.Label(left_frame, text="可用列 (点击选择):", anchor=tk.W).pack(anchor=tk.W, pady=(0, 2), fill=tk.X)
+        ttk.Label(left_frame, text="可用列 (点击选择):").pack(anchor=tk.W, pady=(0, 2))
         
         # 提示标签
         hint_text = "提示：多个Sheet中重复的列\n仅在第一个Sheet显示"
@@ -93,7 +93,7 @@ class FormatBuilder(ttk.Frame):
         right_frame = ttk.Frame(main_frame)
         right_frame.grid(row=0, column=2, sticky="nsew")
         
-        ttk.Label(right_frame, text="已选列 (按顺序):", anchor=tk.W).pack(anchor=tk.W, fill=tk.X)
+        ttk.Label(right_frame, text="已选列 (按顺序):").pack(anchor=tk.W)
         
         # 已选列列表框
         self.selected_listbox = tk.Listbox(right_frame, selectmode=tk.EXTENDED, height=0)
