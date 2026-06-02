@@ -66,9 +66,12 @@ class MainWindow(tk.Tk):
         self.file_selector = FileSelector(left_frame, self)
         self.file_selector.pack(fill=tk.X, padx=5, pady=(5, 10))
         
+        # 创建垂直PanedWindow，允许数据预览区域和格式构建器之间调整大小
+        vertical_paned = ttk.PanedWindow(left_frame, orient=tk.VERTICAL)
+        vertical_paned.pack(fill=tk.BOTH, expand=True, padx=5)
+        
         # Excel预览和PDF列表 - 使用PanedWindow布局，允许用户调整比例
-        data_frame = ttk.Frame(left_frame)
-        data_frame.pack(fill=tk.BOTH, expand=True, padx=5)
+        data_frame = ttk.Frame(vertical_paned)
         
         # 创建水平方向的PanedWindow
         self.paned = ttk.PanedWindow(data_frame, orient=tk.HORIZONTAL)
@@ -83,24 +86,27 @@ class MainWindow(tk.Tk):
         # PDF文件列表窗格
         pdf_frame = ttk.LabelFrame(self.paned, text="PDF文件列表", padding="5")
         
-        self.pdf_listbox = tk.Listbox(pdf_frame, selectmode=tk.EXTENDED)
-        self.pdf_listbox.pack(fill=tk.BOTH, expand=True)
-        
-        # 添加滚动条
-        pdf_scrollbar = ttk.Scrollbar(pdf_frame, orient=tk.VERTICAL, command=self.pdf_listbox.yview)
+        # PDF文件列表 - 添加滚动条
+        pdf_scrollbar = ttk.Scrollbar(pdf_frame, orient=tk.VERTICAL)
         pdf_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.pdf_listbox.configure(yscrollcommand=pdf_scrollbar.set)
+        
+        self.pdf_listbox = tk.Listbox(pdf_frame, selectmode=tk.EXTENDED, yscrollcommand=pdf_scrollbar.set, height=0)
+        self.pdf_listbox.pack(fill=tk.BOTH, expand=True)
+        pdf_scrollbar.config(command=self.pdf_listbox.yview)
         
         # 将窗格添加到PanedWindow，设置权重
         self.paned.add(excel_frame, weight=3)
         self.paned.add(pdf_frame, weight=1)
         
         # 格式构建器
-        format_frame = ttk.LabelFrame(left_frame, text="重命名格式定义", padding="5")
-        format_frame.pack(fill=tk.X, padx=5, pady=(10, 5))
+        format_frame = ttk.LabelFrame(vertical_paned, text="重命名格式定义", padding="5")
+        
+        # 将数据预览区域和格式构建器添加到垂直PanedWindow
+        vertical_paned.add(data_frame, weight=7)  # 数据预览区域占70%
+        vertical_paned.add(format_frame, weight=3)  # 格式构建器占30%
         
         self.format_builder = FormatBuilder(format_frame, self)
-        self.format_builder.pack(fill=tk.X)
+        self.format_builder.pack(fill=tk.BOTH, expand=True)
         
         # 右侧区域：操作按钮 + 预览表格
         right_frame = ttk.Frame(self.main_paned)
