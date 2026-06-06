@@ -277,18 +277,52 @@ class ExcelReader:
     @staticmethod
     def _extract_goods_name(raw_name: str) -> str:
         """
-        从"货物或应税劳务名称"中提取商品名，去掉分类前缀。
+        从"货物或应税劳务名称"中智能提取商品名或分类。
+
+        格式: *税收分类*商品名称
+        规则: 只在第一个 * 处分割，然后判断：
+            - 后半部分 ≤8字 或 与分类重复 → 用后半部分(商品名)
+            - 否则 → 用前半部分(分类)
 
         示例:
-            "*黑色金属冶炼压延品*镀锌管" -> "镀锌管"
-            "*酒*酒汾酒" -> "酒汾酒"
+            "*黑色金属冶炼压延品*镀锌管" -> "镀锌管" (短商品名)
+            "*运输服务*客运服务费" -> "客运服务费" (短商品名)
+            "*日用杂品*IVSO滋味挤压油壶家用带防尘盖调料瓶" -> "日用杂品" (长商品名，用分类)
+            "*乳制品*蒙纯蒙古老酸奶罐装170g*12" -> "乳制品" (长商品名，修复含*号bug)
+            "*服装*服装" -> "服装" (重复，用商品名)
             "普通商品" -> "普通商品"
             "" -> ""
         """
         if not raw_name:
             return ""
-        # 按 * 分割，取最后一个非空段
-        parts = [p.strip() for p in raw_name.split('*') if p.strip()]
-        if parts:
-            return parts[-1]
-        return raw_name.strip()
+
+        s = raw_name.strip()
+
+        # 只在第一个 * 处分割（修复商品名含*号时取错的bug）
+        first_star = s.find('*')
+        if first_star == -1:
+            # 没有星号，直接返回原值
+            return s
+
+        # 找第二个 * 作为分类和商品名的分界
+        second_star = s.find('*', first_star + 1)
+
+        if second_star == -1:
+            # 只有一个 *，如 "*分类商品名"（少见）
+            return s[first_star + 1:].strip()
+
+        # 提取分类(第一个*和第二个*之间)和商品名(第二个*之后)
+        part1 = s[first_star + 1:second_star].strip()  # 分类
+        part2 = s[second_star + 1:].strip()  # 商品名
+
+        if not part1:
+            return part2 if part2 else s
+
+        if not part2:
+            return part1
+
+        # 智能判断: 后半部分 ≤8字 或 与分类重复 → 用后半部分; 否则 → 用前半部分(分类)
+        if len(part2) <= 8 or part2 == part1:
+            return part2
+        else:
+            return part1

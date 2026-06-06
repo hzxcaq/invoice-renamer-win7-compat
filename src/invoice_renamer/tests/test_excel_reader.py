@@ -213,10 +213,29 @@ class TestExcelReader:
                 os.unlink(tmp_path)
 
     def test_extract_goods_name(self):
-        """测试商品名称提取静态方法"""
+        """测试商品名称智能提取静态方法"""
+        # 短商品名(≤8字) → 用后半部分(商品名)
         assert ExcelReader._extract_goods_name("*黑色金属冶炼压延品*镀锌管") == "镀锌管"
         assert ExcelReader._extract_goods_name("*酒*酒汾酒") == "酒汾酒"
+        assert ExcelReader._extract_goods_name("*餐饮服务*餐饮费") == "餐饮费"
+        assert ExcelReader._extract_goods_name("*运输服务*客运服务费") == "客运服务费"
+        assert ExcelReader._extract_goods_name("*日用杂品*马桶垫脚凳") == "马桶垫脚凳"
+
+        # 长商品名(>8字) → 用前半部分(分类)
+        assert ExcelReader._extract_goods_name("*日用杂品*IVSO滋味挤压油壶家用带防尘盖调料瓶厨房酱油瓶番茄酱沙拉酱瓶") == "日用杂品"
+        assert ExcelReader._extract_goods_name("*乳制品*悦鲜活0乳糖鲜牛奶260ml") == "乳制品"
+        assert ExcelReader._extract_goods_name("*服装*其他服装") == "其他服装"
+
+        # 修复bug: 商品名含*号时只在第一个*处分割
+        assert ExcelReader._extract_goods_name("*乳制品*蒙纯蒙古老酸奶罐装170g*12") == "乳制品"
+        assert ExcelReader._extract_goods_name("*方便食品*【厂家直销】陕北特产豌豆杂粮面叶150g*10袋") == "方便食品"
+        assert ExcelReader._extract_goods_name("*酒*俏饮50ml*1") == "俏饮50ml*1"  # ≤8字，用商品名
+
+        # 分类=商品名 → 用后半部分
+        assert ExcelReader._extract_goods_name("*服装*服装") == "服装"
+        assert ExcelReader._extract_goods_name("*酒*酒") == "酒"
+        assert ExcelReader._extract_goods_name("*餐饮服务*餐饮服务") == "餐饮服务"
+
+        # 无星号 → 原样返回
         assert ExcelReader._extract_goods_name("普通商品") == "普通商品"
         assert ExcelReader._extract_goods_name("") == ""
-        # 纯分隔符的情况：无有效段时返回原始值
-        assert ExcelReader._extract_goods_name("***") == "***"

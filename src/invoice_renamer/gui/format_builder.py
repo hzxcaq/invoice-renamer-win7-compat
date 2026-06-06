@@ -56,7 +56,11 @@ class FormatBuilder(ttk.Frame):
         ttk.Label(left_frame, text="可用列 (点击选择):").pack(anchor=tk.W, pady=(0, 2))
         
         # 提示标签
-        hint_text = "提示：多个Sheet中重复的列\n仅在第一个Sheet显示"
+        hint_text = "提示：多个Sheet中重复的列仅在第一个Sheet显示\n" \
+                    "「货物或应税劳务名称」取值规则：\n" \
+                    "  原始格式：*税收分类*商品名\n" \
+                    "  商品名≤8字 → 取商品名\n" \
+                    "  商品名>8字 → 取税收分类"
         ttk.Label(left_frame, text=hint_text, font=("", 8), foreground="#666666", justify=tk.LEFT).pack(anchor=tk.W, pady=(0, 5))
         
         # 树状视图容器
