@@ -67,3 +67,8 @@ Thumbs.db
 # CodeBuddy
 .codebuddy/
 .codegraph/
+
+# 临时文件
+4月
+.ace-tool/
+runs.json
