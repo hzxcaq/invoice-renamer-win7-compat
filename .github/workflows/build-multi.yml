@@ -14,10 +14,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python 3.7
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.7'
 
@@ -32,7 +32,7 @@ jobs:
           pyinstaller --onefile --windowed --name="InvoiceRenamer_Win7" --hidden-import=invoice_renamer.gui --hidden-import=invoice_renamer.gui.main_window --hidden-import=invoice_renamer.gui.file_selector --hidden-import=invoice_renamer.gui.excel_viewer --hidden-import=invoice_renamer.gui.format_builder --hidden-import=invoice_renamer.gui.preview_table --hidden-import=invoice_renamer.core --hidden-import=invoice_renamer.core.excel_reader --hidden-import=invoice_renamer.core.file_matcher --hidden-import=invoice_renamer.core.renamer --hidden-import=invoice_renamer.core.utils src/invoice_renamer/main.py
 
       - name: Upload Windows 7 artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: windows7-executable
           path: dist/InvoiceRenamer_Win7.exe
@@ -41,10 +41,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -59,7 +59,7 @@ jobs:
           pyinstaller --onefile --windowed --name="InvoiceRenamer_Win10" --hidden-import=invoice_renamer.gui --hidden-import=invoice_renamer.gui.main_window --hidden-import=invoice_renamer.gui.file_selector --hidden-import=invoice_renamer.gui.excel_viewer --hidden-import=invoice_renamer.gui.format_builder --hidden-import=invoice_renamer.gui.preview_table --hidden-import=invoice_renamer.core --hidden-import=invoice_renamer.core.excel_reader --hidden-import=invoice_renamer.core.file_matcher --hidden-import=invoice_renamer.core.renamer --hidden-import=invoice_renamer.core.utils src/invoice_renamer/main.py
 
       - name: Upload Windows 10/11 artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: windows10-executable
           path: dist/InvoiceRenamer_Win10.exe
@@ -71,22 +71,22 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Download Windows 7 artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: windows7-executable
           path: dist/
 
       - name: Download Windows 10/11 artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: windows10-executable
           path: dist/
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             dist/InvoiceRenamer_Win7.exe
