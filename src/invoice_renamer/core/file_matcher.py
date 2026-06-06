@@ -83,13 +83,17 @@ class FileMatcher:
         
         # 如果还有未匹配的文件，按文件名排序后与剩余Excel行匹配
         if unmatched_files:
-            # 获取已匹配的发票号码
+            # 获取已匹配的发票号码（与主匹配逻辑保持一致：优先数电发票号码）
             matched_invoices = set()
             for _, excel_row in matched_files:
-                matched_invoices.add(excel_row.get("发票号码", ""))
+                inv = excel_row.get("数电发票号码", "") or excel_row.get("发票号码", "")
+                if inv:
+                    matched_invoices.add(inv)
             
             # 获取未匹配的Excel行
-            unmatched_excel = [row for row in excel_data if row.get("发票号码", "") not in matched_invoices]
+            def _get_inv(row):
+                return row.get("数电发票号码", "") or row.get("发票号码", "")
+            unmatched_excel = [row for row in excel_data if _get_inv(row) and _get_inv(row) not in matched_invoices]
             
             # 按文件名排序
             unmatched_files.sort()

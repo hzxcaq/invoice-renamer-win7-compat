@@ -19,7 +19,7 @@ class ExcelViewer(ttk.Frame):
     def _create_widgets(self):
         """创建界面组件"""
         # 创建表格，设置默认显示10行
-        self.tree = ttk.Treeview(self, show="headings", selectmode="browse", height=10)
+        self.tree = ttk.Treeview(self, show="headings", selectmode="browse")
         
         # 添加滚动条
         scrollbar_y = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.tree.yview)

@@ -2,6 +2,8 @@
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import os
+import datetime
+import glob
 from typing import Optional, List, Dict, Any
 
 from .file_selector import FileSelector
@@ -42,6 +44,9 @@ class MainWindow(tk.Tk):
         self.pdf_files = []
         self.matched_files = []
         self.format_template = ""
+        
+        # 记录最近一次备份文件路径（供撤销使用）
+        self.last_backup_file = None
         
         # 创建界面
         self._create_widgets()
@@ -311,7 +316,12 @@ class MainWindow(tk.Tk):
         
         try:
             # 备份原始文件名
-            backup_file = os.path.join(self.current_directory, "rename_backup.txt")
+            ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_file = os.path.join(
+                self.current_directory,
+                "rename_backup_{}.txt".format(ts),
+            )
+            self.last_backup_file = backup_file
             rename_mapping = []
             
             for file_path, excel_row in self.matched_files:
@@ -349,9 +359,17 @@ class MainWindow(tk.Tk):
             messagebox.showwarning("警告", "请先选择目录")
             return
         
-        backup_file = os.path.join(self.current_directory, "rename_backup.txt")
-        
-        if not os.path.exists(backup_file):
+        backup_file = self.last_backup_file
+        if not backup_file or not os.path.exists(backup_file):
+            # 回退：按时间倒序找目录里最新的备份文件
+            candidates = sorted(
+                glob.glob(os.path.join(self.current_directory, "rename_backup_*.txt")),
+                reverse=True,
+            )
+            if candidates:
+                backup_file = candidates[0]
+
+        if not backup_file or not os.path.exists(backup_file):
             messagebox.showwarning("警告", "没有找到备份文件，无法撤销")
             return
         
