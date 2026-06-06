@@ -51,6 +51,7 @@ jobs:
 
       - name: Generate version number
         id: version
+        shell: bash
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.version }}" ]; then
             echo "tag_name=v${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
@@ -66,6 +67,7 @@ jobs:
           fi
 
       - name: Rename executable with version
+        shell: bash
         run: |
           mv dist/InvoiceRenamer_Win7.exe "dist/InvoiceRenamer_Win7_v${{ steps.version.outputs.display_version }}.exe"
 
